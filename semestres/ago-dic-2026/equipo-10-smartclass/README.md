@@ -6,14 +6,14 @@
 
 | Nombre                       | Matrícula | Rol                                                      | GitHub      |
 |------------------------------|-----------|----------------------------------------------------------|-------------|
-| Carrillo Gómez Aldo Emmanuel | 23240343  | 🔧 Código (firmware, servidor, IA, Firebase) ·           |             |
-| Torres Uribe Juan Daniel     | 232402326 | 📝 Documentación   🔩 Circuito                          | @danielTU03 |
+| Carrillo Gómez Aldo Emmanuel | 23240343  | 🔧 Código (firmware, servidor, IA, Firebase) · 🔩 Circuito |             |
+| Torres Uribe Juan Daniel     | 232402326 | 📝 Documentación                                          | @danielTU03 |
 
 ---
 
 ## 📌 Descripción General
 
-SmartClass ayuda a profesores, estudiantes y a la institución a ahorrar tiempo de clase, automatizando el pase de lista con reconocimiento facial (ESP32-CAM + IA) y llevando un registro de entradas y salidas del salón. Resuelve el problema de que pasar lista consume tiempo, de que los alumnos pueden salir sin regresar y de que las condiciones del aula (luz y clima) afectan el aprendizaje. A diferencia del pase de lista tradicional, también calcula retardos con un reloj RTC, cronometra las salidas intermedias, guarda en Firebase las fotos de personas no registradas para que el docente las valide y activa ventilación o luz auxiliar de forma automática.
+SmartClass ayuda a profesores, estudiantes y a la institución a ahorrar tiempo de clase, automatizando el pase de lista con reconocimiento facial: una ESP32-CAM envía fotos por MQTT a un servidor Python con IA, que identifica al alumno, registra su asistencia en Firebase y activa los actuadores del salón (buzzer, indicador luminoso, pantalla y dispensador de gel). Resuelve el problema de que pasar lista consume tiempo, de que entran personas no registradas sin que nadie lo note y de que no hay un registro confiable de las condiciones del aula. A diferencia del pase de lista tradicional, también monitorea temperatura, humedad y distancia en tiempo real, guarda un histórico en la nube y muestra todo en un dashboard web que el docente puede abrir desde su celular o computadora.
 
 ---
 
@@ -23,17 +23,20 @@ SmartClass ayuda a profesores, estudiantes y a la institución a ahorrar tiempo 
 
 [![Arquitectura del sistema](hardware/arquitectura.png)](hardware/arquitectura.png)
 
+**Flujo general:** ESP32-CAM → MQTT (`smartclass/cam/frame`) → Servidor Python (OpenCV/IA) → decisión por MQTT → actuadores de la ESP32 → registro en Firebase → dashboard web.
+
 ### Tópicos MQTT
 
-| Tópico                 | Dirección          | Descripción                               |
-|------------------------|--------------------|-------------------------------------------|
-| `smartclass/s/clima`   | ESP32 → Broker     | Temperatura y humedad (DHT11), en JSON    |
-| `smartclass/s/distancia` | ESP32 → Broker   | Distancia en cm (ultrasónico HC-SR04)     |
-| `smartclass/s/ir`      | ESP32 → Broker     | Estado del sensor infrarrojo (0 / 1)      |
-| `smartclass/cam/frame` | ESP32-CAM → Broker | Frame de cámara (JPEG)                    |
-| `smartclass/a/bomba`   | Broker → ESP32     | Comando de la bomba de gel (1 = ON)       |
-| `smartclass/a/buzzer`  | Broker → ESP32     | Comando del buzzer (1 = ON)               |
-| `smartclass/a/vent`    | Broker → ESP32     | Comando del ventilador (1 = ON)           |
+| Tópico                      | Dirección          | Descripción                                          |
+|-----------------------------|--------------------|------------------------------------------------------|
+| `smartclass/s/clima`        | ESP32 → Broker     | Temperatura y humedad (DHT11), en JSON               |
+| `smartclass/s/distancia`    | ESP32 → Broker     | Distancia en cm (ultrasónico HC-SR04)                |
+| `smartclass/s/ir`           | ESP32 → Broker     | Estado del sensor infrarrojo (0 / 1)                 |
+| `smartclass/cam/frame`      | ESP32-CAM → Broker | Frame de cámara (JPEG)                               |
+| `smartclass/ia/decision`    | Servidor → Broker  | Decisión de la IA: rostros, clase, actuador y archivo |
+| `smartclass/a/bomba`        | Broker → ESP32     | Comando de la bomba de gel (1 = ON)                  |
+| `smartclass/a/buzzer`       | Broker → ESP32     | Comando del buzzer (1 = ON)                          |
+| `smartclass/a/vent`         | Broker → ESP32     | Comando del ventilador (1 = ON)                      |
 
 ---
 
@@ -60,7 +63,7 @@ SmartClass ayuda a profesores, estudiantes y a la institución a ahorrar tiempo 
 
 > Inserta aquí una imagen que muestre cómo están conectados los componentes. Puede ser un diagrama hecho en cualquier herramienta (Fritzing, draw.io, Canva, foto del circuito, etc.). Guarda la imagen en `hardware/` y actualiza la ruta abajo.
 
-[![Diagrama de conexiones](hardware/diagrama.png)](hardware/diagrama.png)
+[![Diagrama de conexiones](hardware/diagrama.jpg)](hardware/diagrama.jpg)
 
 ---
 
@@ -89,6 +92,12 @@ cd servidor
 python mqtt_bridge.py
 ```
 
+**4. Abrir el dashboard** desde cualquier dispositivo conectado a la misma red WiFi:
+
+```
+http://IP-DE-LA-PC:5000
+```
+
 ### Librerías ESP32 (MicroPython — corren en la placa)
 
 | Librería               | Uso                                  |
@@ -114,16 +123,41 @@ python mqtt_bridge.py
 
 ## 🧠 Inteligencia Artificial
 
-- **Modelo:** *(por definir: OpenCV / MediaPipe / TensorFlow Lite)*
-- **Qué detecta:** Reconocimiento facial para distinguir a los alumnos matriculados de rostros no registrados (visitantes o alumnos nuevos).
-- **Cómo toma decisiones:** Si reconoce al alumno → valida la hora con el RTC, publica su estado ("A tiempo" o "Retardo") y el buzzer confirma. Si no lo reconoce → toma la captura, la guarda en Firebase con la etiqueta "Pendiente de Registro" y avisa al docente.
-- **Confianza mínima aceptada:** *%*
+- **Modelo:** OpenCV para detectar rostros y reconocer alumnos registrados *(confirmar librería y modelo exactos)*
+- **Qué detecta:** Si hay un rostro frente a la cámara y si ese rostro pertenece a un alumno registrado.
+- **Cómo toma decisiones:**
+  - Sin rostro en el frame → activa el buzzer.
+  - Rostro detectado → activa la bomba del dispensador de gel.
+  - Alumno reconocido → registra la asistencia en Firebase, enciende el indicador verde, suena un buzzer corto y muestra la pantalla de bienvenida.
+  - Rostro desconocido → indicador rojo y buzzer largo.
+- **Confianza mínima aceptada:** *%* (en las pruebas, un alumno registrado salió con 0.85 y un desconocido con 0.17)
+
+Cada decisión se publica en `smartclass/ia/decision` y se guarda en Firebase.
+
+---
+
+## 📊 Dashboard
+
+Dashboard web accesible desde el celular o la computadora del docente:
+
+- **Sensores en tiempo real:** temperatura, humedad, distancia, sensor de la puerta y del dispensador, y estado en línea de cada nodo.
+- **Asistencia de hoy:** lista de alumnos que llegaron, con opción de descargar a Excel.
+- **Alumnos registrados:** alta de nuevos alumnos para el reconocimiento facial.
+- **Configuración de red:** nombre y contraseña del WiFi.
+
+[![Dashboard](media/dashboard.png)](media/dashboard.png)
 
 ---
 
 ## 🎥 Demostración
 
 **Video demostrativo (YouTube):** [▶️ Ver video](https://youtube.com/watch?v=XXXXXXXX)
+
+### Evidencias del sistema funcionando
+
+| Consola MQTT | Servidor de IA | Firebase |
+|--------------|----------------|----------|
+| [![MQTT](media/consola-mqtt.png)](media/consola-mqtt.png) | [![IA](media/consola-ia.png)](media/consola-ia.png) | [![Firebase](media/firebase-decisiones.png)](media/firebase-decisiones.png) |
 
 ### Fotos del prototipo final
 
@@ -149,19 +183,25 @@ python mqtt_bridge.py
 
 ## 🔥 Esquema Firebase
 
+Base de datos Cloud Firestore (proyecto `smartclass`). Detalle de cada campo en [`firebase/esquema.md`](firebase/esquema.md).
+
 ```
-/nombre-proyecto/
-  /lecturas/{timestamp}/
-      sensor1: valor
-      sensor2: valor
-      sensor3: valor
-  /eventos_ia/{timestamp}/
-      deteccion: "clase"
-      accion: "actuador_ON"
-      confianza: 0.92
-  /estado_actual/
-      sensor1: ultimo_valor
-      actuador1: "ON"
+/lecturas/{timestamp}
+    temperatura, humedad, distancia_cm, ir_puerta, ir_dispensador
+/decisiones/{id}
+    clase: "persona" | "sin_rostro"
+    rostros: 1
+    actuador: "bomba" | "buzzer"
+    origen: "esp32_puerta"
+/eventos_ia/{timestamp}
+    deteccion: "Aldo Carrillo" | "desconocido"
+    confianza: 0.852
+    accion: "anillo_verde+buzzer_corto+pantalla_bienvenida"
+    alumno_id, asistencia_nueva
+/asistencias/{timestamp}
+    alumno, fecha, hora
+/estado_actual
+    último estado de sensores y actuadores
 ```
 
 ---
