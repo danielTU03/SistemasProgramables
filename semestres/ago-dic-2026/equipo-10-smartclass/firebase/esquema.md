@@ -2,53 +2,41 @@
 
 Base de datos: **Cloud Firestore** (proyecto `smartclass`).
 
-El servidor Python escribe en Firestore después de cada lectura de sensores, cada decisión de la IA y cada asistencia registrada. El dashboard lee estos datos para mostrar el histórico y el estado en tiempo real.
+El servidor Python (`servidor/firebase_opcional.py`) escribe en Firestore desde un hilo aparte, para no frenar el reconocimiento facial. El dashboard lee de ahí el histórico. Si no existe la llave `serviceAccountKey.json`, el sistema funciona igual pero sin guardar en la nube.
 
 ## Colecciones
 
 ### `lecturas/{timestamp}`
-Histórico de sensores (se guarda una lectura por minuto aproximadamente).
+Histórico de sensores (una lectura por minuto, ajustable con `INTERVALO_LECTURAS_S`).
 
-| Campo            | Tipo   | Ejemplo               | Descripción                         |
-|------------------|--------|-----------------------|-------------------------------------|
-| `temperatura`    | number | `23`                  | Temperatura en °C (DHT11)           |
-| `humedad`        | number | `74`                  | Humedad relativa en % (DHT11)       |
-| `distancia_cm`   | number | `51.5`                | Distancia en cm (ultrasónico)       |
-| `ir_puerta`      | number | `0`                   | Sensor infrarrojo de la puerta      |
-| `ir_dispensador` | number | `1`                   | Sensor infrarrojo del dispensador   |
-| `timestamp`      | string | `2026-11-14T01:59:33` | Fecha y hora de la lectura          |
-| `creado`         | timestamp | —                  | Marca de tiempo de Firestore        |
-
-### `decisiones/{id}`
-Una decisión por cada frame que procesa la IA (Sprint 2).
-
-| Campo       | Tipo      | Ejemplo               | Descripción                                   |
-|-------------|-----------|-----------------------|-----------------------------------------------|
-| `clase`     | string    | `persona` / `sin_rostro` | Resultado de la detección                  |
-| `rostros`   | number    | `1`                   | Cantidad de rostros detectados                |
-| `actuador`  | string    | `bomba` / `buzzer`    | Actuador que se activó                        |
-| `origen`    | string    | `esp32_puerta`        | Nodo que envió el frame                       |
-| `timestamp` | string    | `2026-11-11T19:05:42` | Fecha y hora de la decisión                   |
-| `creado`    | timestamp | —                     | Marca de tiempo de Firestore                  |
+| Campo            | Tipo      | Ejemplo               | Descripción                       |
+|------------------|-----------|-----------------------|-----------------------------------|
+| `temperatura`    | number    | `23`                  | Temperatura en °C (DHT11)         |
+| `humedad`        | number    | `74`                  | Humedad relativa en % (DHT11)     |
+| `distancia_cm`   | number    | `51.5`                | Distancia en cm (ultrasónico)     |
+| `ir_puerta`      | number    | `0`                   | Sensor infrarrojo de la puerta    |
+| `ir_dispensador` | number    | `1`                   | Sensor infrarrojo del dispensador |
+| `timestamp`      | string    | `2026-11-14T01:59:33` | Fecha y hora de la lectura        |
+| `creado`         | timestamp | —                     | Marca de tiempo de Firestore      |
 
 ### `eventos_ia/{timestamp}`
-Eventos de reconocimiento de alumnos.
+Una decisión de la IA por cada reconocimiento (los desconocidos se guardan como máximo cada 5 segundos).
 
-| Campo               | Tipo      | Ejemplo                                        | Descripción                           |
-|---------------------|-----------|------------------------------------------------|---------------------------------------|
-| `deteccion`         | string    | `Aldo Carrillo` / `desconocido`                | Alumno reconocido o desconocido       |
-| `confianza`         | number    | `0.852`                                        | Confianza de la IA (0 a 1)            |
-| `accion`            | string    | `anillo_verde+buzzer_corto+pantalla_bienvenida` | Respuesta de los actuadores          |
-| `alumno_id`         | string    | `8203786e`                                     | Identificador del alumno registrado   |
-| `asistencia_nueva`  | boolean   | `true`                                         | Si se registró una asistencia nueva   |
-| `fecha` / `hora`    | string    | `2026-11-14` / `01:57:32`                      | Fecha y hora del evento               |
-| `timestamp`         | string    | `2026-11-14T01:57:32`                          | Fecha y hora completas                |
-| `creado`            | timestamp | —                                              | Marca de tiempo de Firestore          |
+| Campo               | Tipo      | Ejemplo                                         | Descripción                         |
+|---------------------|-----------|-------------------------------------------------|-------------------------------------|
+| `deteccion`         | string    | `Aldo Carrillo` / `desconocido`                 | Alumno reconocido o desconocido     |
+| `confianza`         | number    | `0.852`                                         | Similitud del rostro (0 a 1)        |
+| `accion`            | string    | `anillo_verde+buzzer_corto+pantalla_bienvenida` | Respuesta de los actuadores         |
+| `alumno_id`         | string    | `8203786e`                                      | Identificador del alumno            |
+| `asistencia_nueva`  | boolean   | `true`                                          | Si se registró una asistencia nueva |
+| `fecha` / `hora`    | string    | `2026-11-14` / `01:57:32`                       | Fecha y hora del evento             |
+| `timestamp`         | string    | `2026-11-14T01:57:32`                           | Fecha y hora completas              |
+| `creado`            | timestamp | —                                               | Marca de tiempo de Firestore        |
 
-Cuando la IA no reconoce el rostro, `deteccion` es `desconocido`, la confianza es baja y la acción es `anillo_rojo+buzzer_largo`.
+Cuando el rostro no coincide con ningún alumno, `deteccion` es `desconocido`, la confianza es baja y la acción es `anillo_rojo+buzzer_largo`.
 
 ### `asistencias/{timestamp}`
-Asistencia registrada de cada alumno.
+Primera llegada de cada alumno en el día.
 
 | Campo       | Tipo      | Ejemplo               | Descripción                  |
 |-------------|-----------|-----------------------|------------------------------|
@@ -58,15 +46,31 @@ Asistencia registrada de cada alumno.
 | `timestamp` | string    | `2026-11-14T02:00:03` | Fecha y hora completas       |
 | `creado`    | timestamp | —                     | Marca de tiempo de Firestore |
 
-### `estado_actual`
-Último valor conocido de los sensores y actuadores, que el dashboard consulta para mostrar el estado en tiempo real.
+### `estado_actual/actual`
+Un solo documento con el último estado del sistema, que se actualiza cada vez que cambia un actuador y cada 15 segundos.
+
+| Campo                       | Tipo    | Ejemplo | Descripción                           |
+|-----------------------------|---------|---------|---------------------------------------|
+| `temperatura`, `humedad`    | number  | `23`    | Últimas lecturas del DHT11            |
+| `distancia_cm`              | number  | `51.5`  | Última distancia                      |
+| `ir_puerta`, `ir_dispensador` | number | `0`    | Último estado de los sensores IR      |
+| `bomba`                     | string  | `OFF`   | Estado de la bomba de gel             |
+| `ventilador`                | string  | `ON`    | Estado del ventilador                 |
+| `nodo_puerta_en_linea`      | boolean | `true`  | El nodo puerta respondió hace menos de 30 s |
+| `nodo_dispensador_en_linea` | boolean | `true`  | El nodo dispensador respondió hace menos de 30 s |
+
+### `decisiones/{id}`
+Colección del Sprint 2, con la primera versión del servidor: guardaba una decisión por cada frame (`clase`: `persona` o `sin_rostro`, `rostros`, `actuador`, `origen`). En la versión final las decisiones se guardan en `eventos_ia`.
 
 ## Estructura resumida
 
 ```
 /lecturas/{timestamp}        → temperatura, humedad, distancia_cm, ir_puerta, ir_dispensador
-/decisiones/{id}             → clase, rostros, actuador, origen
 /eventos_ia/{timestamp}      → deteccion, confianza, accion, alumno_id, asistencia_nueva
 /asistencias/{timestamp}     → alumno, fecha, hora
-/estado_actual               → último estado de sensores y actuadores
+/estado_actual/actual        → último estado de sensores, actuadores y nodos
 ```
+
+## Reglas de seguridad
+
+Las reglas de Firestore (`reglas.json`) bloquean todo acceso desde clientes (`allow read, write: if false`). Solo el servidor puede leer y escribir, porque usa la llave de servicio de Firebase Admin (`serviceAccountKey.json`), que no se sube al repositorio.
