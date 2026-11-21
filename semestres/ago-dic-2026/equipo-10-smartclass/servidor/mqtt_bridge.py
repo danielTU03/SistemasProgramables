@@ -237,11 +237,11 @@ class Servidor:
         print(f"[{ahora:%H:%M:%S}] Frame recibido -> IA: {nombre} (similitud {score:.2f}) "
               "-> actuador: anillo verde + buzzer corto + pantalla BIENVENIDO"
               f"{' | asistencia registrada' if nueva else ' | ya estaba registrado hoy'}")
-        self._evento_ia(nombre, "anillo_verde+buzzer_corto+pantalla_bienvenida", score,
+        self._evento_ia(alumno_id, "anillo_verde+buzzer_corto+pantalla_bienvenida", score,
                         {"alumno_id": alumno_id, "asistencia_nueva": bool(nueva),
                          "fecha": ahora.strftime("%Y-%m-%d"), "hora": hora}, ahora)
         if nueva:
-            self.nube.asistencia(nombre, ahora.strftime("%Y-%m-%d"), hora, ahora)
+            self.nube.asistencia(alumno_id, ahora.strftime("%Y-%m-%d"), hora, ahora)
 
     # ------------------------------------------------------------ registro de alumnos
     def _registro_activo(self):
@@ -407,6 +407,7 @@ class Servidor:
             actuadores = dict(self.actuadores)
         temps = [h["temperatura"] for h in historial if h.get("temperatura") is not None]
         eventos_hoy = [e for e in eventos if str(e.get("t", "")).startswith(hoy)]
+        nombres = {a["id"]: a["nombre"] for a in self.alumnos.listar()}
         resumen = {
             "temp_min": min(temps) if temps else None,
             "temp_max": max(temps) if temps else None,
@@ -420,7 +421,8 @@ class Servidor:
             "ahora": ahora.isoformat(timespec="seconds"),
             "firebase": bool(self.nube.activo()),
             "historial": self._reducir(historial, 300),
-            "eventos": list(reversed(eventos))[:15],
+            "eventos": [dict(e, deteccion=nombres.get(e.get("deteccion"), e.get("deteccion")))
+                        for e in list(reversed(eventos))[:15]],
             "resumen": resumen,
             "alertas": self._alertas(),
             "actuadores": actuadores,

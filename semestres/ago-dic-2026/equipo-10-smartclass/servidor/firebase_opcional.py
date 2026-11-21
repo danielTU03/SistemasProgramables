@@ -97,8 +97,8 @@ def evento_ia(deteccion, accion, confianza, extra=None, ahora=None):
     _guardar("eventos_ia", doc, ahora)
 
 
-def asistencia(alumno, fecha, hora, ahora=None):
-    _guardar("asistencias", {"alumno": alumno, "fecha": fecha, "hora": hora}, ahora)
+def asistencia(alumno_id, fecha, hora, ahora=None):
+    _guardar("asistencias", {"alumno_id": alumno_id, "fecha": fecha, "hora": hora}, ahora)
 
 
 def estado_actual(valores):

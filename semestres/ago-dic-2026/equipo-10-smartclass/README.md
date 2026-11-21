@@ -177,7 +177,7 @@ Si una placa no logra conectarse, crea la red `SmartClass-Setup` con una página
   - Sin rostro → pide mirar a la cámara.
 - **Confianza mínima aceptada:** 0.40 de similitud (ajustable en `config_servidor.py`). En las pruebas, un alumno registrado salió con 0.85 y un desconocido con 0.17.
 
-Cada decisión se guarda en Firebase (`eventos_ia`) y se muestra en el dashboard.
+Cada decisión se guarda en Firebase (`eventos_ia`) solo con el `alumno_id` y se muestra en el dashboard con el nombre, que se consulta en la laptop del servidor.
 
 ---
 
@@ -237,7 +237,7 @@ Página web del docente, protegida con usuario y contraseña, que se abre desde 
 | 9 | Pantalla OLED (I2C)         | SDA: 13, SCL: 14     | smartclass/puerta/resultado   | Texto   | 128x64 px    |
 | 10 | Cámara OV2640              | Pines internos       | smartclass/cam/frame          | JPEG    | —            |
 
-La tabla HAL del Sprint 1 (primer prototipo, con otra distribución de pines) está en `docs/tabla_hal_sprint1.docx`.
+La versión completa, con tópicos de publicación y suscripción, rangos y la respuesta de la puerta, está en [`docs/HAL.md`](docs/HAL.md).
 
 ---
 
@@ -249,15 +249,26 @@ Base de datos Cloud Firestore (proyecto `smartclass`). El detalle de cada campo 
 /lecturas/{timestamp}
     temperatura, humedad, distancia_cm, ir_puerta, ir_dispensador
 /eventos_ia/{timestamp}
-    deteccion: "Aldo Carrillo" | "desconocido"
+    deteccion: alumno_id | "desconocido"
     confianza: 0.852
     accion: "anillo_verde+buzzer_corto+pantalla_bienvenida"
     alumno_id, asistencia_nueva
 /asistencias/{timestamp}
-    alumno, fecha, hora
+    alumno_id, fecha, hora
 /estado_actual/actual
     sensores, bomba, ventilador, nodo_puerta_en_linea, nodo_dispensador_en_linea
 ```
+
+---
+
+## 🔒 Privacidad y seguridad
+
+Como el sistema usa reconocimiento facial, se tomaron estas medidas:
+
+- **En Firebase solo se guarda `alumno_id`**, un código aleatorio de 8 caracteres, nunca el nombre del alumno. La relación entre el id y el nombre vive únicamente en la laptop del servidor (`servidor/datos/alumnos.json`) y no se sube al repositorio. El dashboard consulta el nombre en esa laptop para mostrarlo al docente.
+- **No hay fotos ni datos de rostros en el repositorio.** De cada alumno solo se guardan vectores numéricos del rostro, no fotografías, y únicamente en la laptop. El servidor no guarda en disco las fotos que recibe: conserva en memoria la última para mostrarla en el dashboard. Un `.gitignore` evita subir `servidor/datos/`, los modelos, las llaves de Firebase y los archivos de configuración con contraseñas.
+- **Reglas de Firestore:** [`firebase/reglas.json`](firebase/reglas.json) bloquea toda lectura y escritura desde clientes (`allow read, write: if false`), así que nadie con el identificador del proyecto, ni desde una app ni desde un navegador, puede leer los datos. Solo accede el servidor, con una credencial de administrador (`serviceAccountKey.json`, que está fuera del repositorio), y se pueden consultar desde la consola de Firebase únicamente con las cuentas de Google del equipo que tienen acceso al proyecto.
+- **El dashboard** pide usuario y contraseña, que se definen en `config_servidor.py`, y esa contraseña tampoco se sube.
 
 ---
 
