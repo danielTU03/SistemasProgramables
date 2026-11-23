@@ -6,7 +6,7 @@
 
 | Nombre                       | Matrícula | Rol                                                      | GitHub      |
 |------------------------------|-----------|----------------------------------------------------------|-------------|
-| Carrillo Gómez Aldo Emmanuel | 23240343  | 🔧 Código (firmware, servidor, IA, Firebase) · 🔩 Circuito |             |
+| Carrillo Gómez Aldo Emmanuel | 23240343  | 🔧 Código (firmware, servidor, IA, Firebase) · 🔩 Circuito | @AldoECarrillo |
 | Torres Uribe Juan Daniel     | 23240326  | 📝 Documentación · 🔩 Circuito                            | @danielTU03 |
 
 ---
