@@ -1,6 +1,6 @@
 # SmartClass
 
-[![Estado](https://img.shields.io/badge/estado-en--desarrollo-yellow)](#) [![Semestre](https://img.shields.io/badge/semestre-ago--dic--2026-blue)](#) [![Materia](https://img.shields.io/badge/materia-Sistemas%20Programables-orange)](#)
+[![Estado](https://img.shields.io/badge/estado-completado-brightgreen)](#) [![Semestre](https://img.shields.io/badge/semestre-ago--dic--2026-blue)](#) [![Materia](https://img.shields.io/badge/materia-Sistemas%20Programables-orange)](#)
 
 > **Semestre:** ago-dic-2026 **Materia:** Sistemas Programables — ISC TecNM León **Integrantes:**
 
@@ -57,24 +57,28 @@ SmartClass ayuda a profesores, estudiantes y a la institución a ahorrar tiempo 
 | #  | Componente                                              | Tipo                       | Cantidad | Costo aprox. MXN |
 |----|---------------------------------------------------------|----------------------------|----------|------------------|
 | 1  | ESP32 DevKit (ESP-WROOM-32), nodo dispensador           | Microcontrolador           | 1        | $120             |
-| 2  | ESP32-WROVER con cámara OV2640, nodo puerta             | Cámara y microcontrolador  | 1        | —                |
-| 3  | Sensor infrarrojo de obstáculos (puerta)                | Sensor                     | 1        | —                |
-| 4  | Sensor infrarrojo de obstáculos (dispensador)           | Sensor                     | 1        | —                |
+| 2  | ESP32-WROVER con cámara OV2640, nodo puerta             | Cámara y microcontrolador  | 1        | $198             |
+| 3  | Sensor infrarrojo de obstáculos (puerta)                | Sensor                     | 1        | $43              |
+| 4  | Sensor infrarrojo de obstáculos (dispensador)           | Sensor                     | 1        | $43              |
 | 5  | Ultrasónico HC-SR04 con divisor de voltaje (1 kΩ y 2 kΩ en ECHO) | Sensor            | 1        | $35              |
 | 6  | DHT11                                                   | Sensor                     | 1        | $40              |
 | 7  | Buzzer activo                                           | Actuador                   | 1        | $20              |
-| 8  | Módulo relevador de 2 canales                           | Actuador                   | 1        | —                |
-| 9  | Mini bomba (dispensador de gel)                         | Actuador                   | 1        | —                |
-| 10 | Mini ventilador                                         | Actuador                   | 1        | —                |
-| 11 | Anillo LED WS2812B de 12 LEDs                           | Indicador                  | 1        | —                |
+| 8  | Módulo relevador de 2 canales                           | Actuador                   | 1        | $69              |
+| 9  | Mini bomba (dispensador de gel)                         | Actuador                   | 1        | $63              |
+| 10 | Mini ventilador                                         | Actuador                   | 1        | $98              |
+| 11 | Anillo LED WS2812B de 12 LEDs                           | Indicador                  | 1        | $69              |
 | 12 | Pantalla OLED 0.96" I2C (SSD1306)                       | Apoyo visual               | 1        | $75              |
-| **Total** |                           |                            |          | *(por completar)* |
+| **Total** |                                                  |                            |          | **$873**         |
+
+> El total incluye las dos placas ESP32 ($318).
 
 ### Diagrama de conexiones
 
 > Inserta aquí una imagen que muestre cómo están conectados los componentes. Puede ser un diagrama hecho en cualquier herramienta (Fritzing, draw.io, Canva, foto del circuito, etc.). Guarda la imagen en `hardware/` y actualiza la ruta abajo.
 
 [![Diagrama de conexiones](hardware/diagrama.jpg)](hardware/diagrama.jpg)
+
+Diagrama de las señales de cada placa, generado a partir de los pines del código: [`hardware/esquematico.png`](hardware/esquematico.png).
 
 ---
 
@@ -199,7 +203,9 @@ Página web del docente, protegida con usuario y contraseña, que se abre desde 
 
 ## 🎥 Demostración
 
-**Video demostrativo (YouTube):** [▶️ Ver video](https://youtube.com/watch?v=XXXXXXXX)
+**Video demostrativo (YouTube):** [▶️ Ver video](https://youtu.be/y1SGtI8_4Eg)
+
+**Reporte final:** [`docs/reporte_final.pdf`](docs/reporte_final.pdf) · **Tabla HAL:** [`docs/HAL.md`](docs/HAL.md)
 
 ### Evidencias del sistema funcionando
 
@@ -207,11 +213,9 @@ Página web del docente, protegida con usuario y contraseña, que se abre desde 
 |--------------|----------------|----------|
 | [![MQTT](media/consola-mqtt.png)](media/consola-mqtt.png) | [![IA](media/consola-ia.png)](media/consola-ia.png) | [![Firebase](media/firebase-decisiones.png)](media/firebase-decisiones.png) |
 
-### Fotos del prototipo final
+### Prototipo final
 
-| Vista frontal | Vista interna | Sistema en operación |
-|---------------|---------------|----------------------|
-| [![frontal](media/prototipo-frontal.jpg)](media/prototipo-frontal.jpg) | [![interna](media/prototipo-interno.jpg)](media/prototipo-interno.jpg) | [![operacion](media/sistema-operacion.jpg)](media/sistema-operacion.jpg) |
+<a href="media/prototipo-final.jpg"><img src="media/prototipo-final.jpg" width="320" alt="Prototipo final de SmartClass con su carcasa"></a>
 
 ---
 
@@ -274,7 +278,13 @@ Como el sistema usa reconocimiento facial, se tomaron estas medidas:
 
 ## ⚠️ Retos técnicos encontrados
 
-*(Llenar al finalizar el proyecto — esta sección alimenta las conclusiones del reporte)*
+- **Energía y ruido eléctrico:** al conectar todos los componentes, algunos dejaban de funcionar y la bomba daba saltos. Un relevador dejaba pasar corriente y provocaba esos brincos.
+- **Módulo WiFi dañado:** el módulo de una de las ESP32 se dañó y hubo que comprar otra placa.
+- **Una sola placa no alcanzaba:** con todo en una ESP32 el sistema era muy pesado, tardaba en procesar y faltaban pines, por lo que se separó en dos nodos (puerta y dispensador).
+- **Red WiFi de la escuela:** en casa todo funcionaba bien, pero en la escuela la conexión era lenta e inestable, lo que retrasaba las decisiones y hacía que los sensores se comportaran de forma errática. El firmware incluye la red `SmartClass-Setup` para cambiar el WiFi y la IP del servidor sin reprogramar las placas.
+- **Calidad de la cámara:** se ajustaron la resolución y la calidad de las fotos para mejorar el reconocimiento facial.
+- **Privacidad:** tras la revisión, el servidor se cambió para guardar en Firebase solo el `alumno_id` y dejar los nombres únicamente en la laptop.
+- **Primer proyecto con GitHub:** hubo que aprender a trabajar con ramas, commits y Pull Requests.
 
 ---
 
