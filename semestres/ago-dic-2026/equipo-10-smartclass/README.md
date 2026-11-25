@@ -6,7 +6,7 @@
 
 | Nombre                       | Matrícula | Rol                                                      | GitHub      |
 |------------------------------|-----------|----------------------------------------------------------|-------------|
-| Carrillo Gómez Aldo Emmanuel | 23240343  | 🔧 Código (firmware, servidor, IA, Firebase) · 🔩 Circuito |             |
+| Carrillo Gómez Aldo Emmanuel | 23240343  | 🔧 Código (firmware, servidor, IA, Firebase) · 🔩 Circuito | @AldoECarrillo |
 | Torres Uribe Juan Daniel     | 23240326  | 📝 Documentación · 🔩 Circuito                            | @danielTU03 |
 
 ---
@@ -203,7 +203,7 @@ Página web del docente, protegida con usuario y contraseña, que se abre desde 
 
 ## 🎥 Demostración
 
-**Video demostrativo (YouTube):** [▶️ Ver video](https://youtu.be/y1SGtI8_4Eg)
+**Video demostrativo (YouTube):** [▶️ Ver video](https://youtu.be/TPcTKhd1if8)
 
 **Reporte final:** [`docs/reporte_final.pdf`](docs/reporte_final.pdf) · **Tabla HAL:** [`docs/HAL.md`](docs/HAL.md)
 
@@ -285,6 +285,14 @@ Como el sistema usa reconocimiento facial, se tomaron estas medidas:
 - **Calidad de la cámara:** se ajustaron la resolución y la calidad de las fotos para mejorar el reconocimiento facial.
 - **Privacidad:** tras la revisión, el servidor se cambió para guardar en Firebase solo el `alumno_id` y dejar los nombres únicamente en la laptop.
 - **Primer proyecto con GitHub:** hubo que aprender a trabajar con ramas, commits y Pull Requests.
+
+---
+
+## 🔮 Trabajo futuro
+
+- **Reglas de Firestore con autenticación:** hoy las reglas bloquean todo acceso de clientes y solo el servidor lee y escribe con su credencial de administrador. El siguiente paso es usar Firebase Authentication para permitir la lectura únicamente a las cuentas autorizadas (docente y equipo), con reglas que verifiquen la identidad de cada usuario.
+- **Consentimiento explícito de los alumnos:** antes de registrar el rostro de un alumno, pedir y guardar su consentimiento informado, con un aviso de privacidad que explique para qué se usan sus datos y cómo darse de baja. El dashboard ya permite eliminar a un alumno registrado.
+- **Retardos con reloj de tiempo real (RTC)** y notificaciones al docente.
 
 ---
 
