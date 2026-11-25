@@ -197,7 +197,7 @@ Página web del docente, protegida con usuario y contraseña, que se abre desde 
 - **Alumnos registrados:** alta con la cámara de la puerta, cambio de nombre y baja.
 - **Configuración de red:** envía una nueva red WiFi a las placas.
 
-[![Dashboard](media/dashboard.png)](media/dashboard.png)
+[![Dashboard](media/dashboard.jpg)](media/dashboard.jpg)
 
 ---
 
@@ -205,7 +205,7 @@ Página web del docente, protegida con usuario y contraseña, que se abre desde 
 
 **Video demostrativo (YouTube):** [▶️ Ver video](https://youtu.be/TPcTKhd1if8)
 
-**Reporte final:** [`docs/reporte_final.pdf`](docs/reporte_final.pdf) · **Tabla HAL:** [`docs/HAL.md`](docs/HAL.md)
+**Reporte final:** [`docs/ReporteFinal_Smartclass.pdf`](docs/ReporteFinal_Smartclass.pdf) · **Tabla HAL:** [`docs/HAL.md`](docs/HAL.md)
 
 ### Evidencias del sistema funcionando
 
