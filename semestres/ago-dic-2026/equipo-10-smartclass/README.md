@@ -205,7 +205,7 @@ Página web del docente, protegida con usuario y contraseña, que se abre desde 
 
 **Video demostrativo (YouTube):** [▶️ Ver video](https://youtu.be/TPcTKhd1if8)
 
-**Reporte final:** [`docs/ReporteFinal_Smartclass.pdf`](docs/ReporteFinal_Smartclass.pdf) · **Tabla HAL:** [`docs/HAL.md`](docs/HAL.md)
+**Reporte final:** [`docs/ReporteFinal_SmartClass.pdf`](docs/ReporteFinal_SmartClass.pdf) · **Tabla HAL:** [`docs/HAL.md`](docs/HAL.md)
 
 ### Evidencias del sistema funcionando
 
