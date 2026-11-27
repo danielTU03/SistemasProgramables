@@ -1,0 +1,3 @@
+Modelo YOLO original proporcionado por el equipo del InovaTec e incorporado como best.pt.
+La configuración config_ia.json apunta a este archivo.
+Ejecuta vision_mqtt.py desde la carpeta laptop para que la ruta relativa resuelva correctamente.

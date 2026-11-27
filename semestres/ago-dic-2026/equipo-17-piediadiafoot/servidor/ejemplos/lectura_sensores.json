@@ -1,0 +1,14 @@
+{
+  "uptime_ms": 123456,
+  "fsr_raw": 1460,
+  "pressure_ok": true,
+  "distance_cm": 9.8,
+  "distance_ok": true,
+  "position_ready": true,
+  "ambient_temp_c": 26.4,
+  "object_temp_c": 31.2,
+  "motor": "stop",
+  "fan_led_on": false,
+  "servo_angle": 90,
+  "buzzer_on": false
+}
