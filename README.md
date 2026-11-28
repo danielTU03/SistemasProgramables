@@ -47,7 +47,7 @@ problemas reales de **inclusión social y computación cognitiva**, integrando:
 | 07 | **OMNISERVE** | Estación de bebidas | Anguiano Contreras Joshua · Méndez Martínez Diego | [📁](semestres/ago-dic-2026/equipo-07-omniserve) | — |
 | 08 | **PETCARE** | Estación alimento e hidratación mascotas | Flores Valencia Isaac · Padilla De La Cruz Brandon · Padilla López Lidia | [📁](semestres/ago-dic-2026/equipo-08-petcare) | — |
 | 09 | **SafeDrop** | Buzón inteligente | Medina Rivas Alan · Ojeda Cabrera Victor Hugo | [📁](semestres/ago-dic-2026/equipo-09-safedrop) | — |
-| 10 | **SmartClass** | Asistencia con biométricos | Carrillo Gómez Aldo · Torres Uribe Juan Daniel | [📁](semestres/ago-dic-2026/equipo-10-smartclass) | — |
+| 10 | **SmartClass** | Asistencia con biométricos | Carrillo Gómez Aldo · Torres Uribe Juan Daniel | [📁](semestres/ago-dic-2026/equipo-10-smartclass) |Entregado |
 | 11 | **Por definir** | Sígueme (posible) | Campos Govea Johan · González Valderrama Carla · Morales Vega Diego · Torres Juárez Fabián | [📁](semestres/ago-dic-2026/equipo-11-por-definir-h7) | — |
 
 #### 🕙 Horario 10

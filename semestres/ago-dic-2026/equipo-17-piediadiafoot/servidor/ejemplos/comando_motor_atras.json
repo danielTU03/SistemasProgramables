@@ -1,0 +1,5 @@
+{
+  "cmd": "motor",
+  "direction": "reverse",
+  "duration_ms": 700
+}
