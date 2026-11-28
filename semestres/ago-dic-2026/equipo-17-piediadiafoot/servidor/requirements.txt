@@ -1,0 +1,12 @@
+streamlit
+requests
+python-dotenv
+supabase
+firebase-admin
+numpy
+opencv-python
+paho-mqtt>=2.0
+ultralytics
+fastapi
+uvicorn
+pydantic
